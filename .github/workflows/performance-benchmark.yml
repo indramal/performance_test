@@ -77,6 +77,7 @@ jobs:
           [ -d "bun-test" ] && echo "✓ bun-test exists" || echo "✗ bun-test missing"
           [ -d "nextjs-test" ] && echo "✓ nextjs-test exists" || echo "✗ nextjs-test missing"
           [ -d "deno-test" ] && echo "✓ deno-test exists" || echo "✗ deno-test missing"
+          [ -d "scripts" ] && echo "✓ scripts exists" || echo "✗ scripts missing"
 
       - name: Install dependencies
         run: |
@@ -112,6 +113,19 @@ jobs:
 
       - name: Build projects
         run: |
+          # Build Tuono (IMPORTANT: Run tuono build first, then cargo build)
+          if [ -d "tuono-test" ]; then
+            echo "Building Tuono..."
+            cd tuono-test
+            echo "Running tuono build..."
+            npx tuono build
+            echo "Running cargo build..."
+            cargo build --release
+            cd ..
+          else
+            echo "Skipping Tuono build - directory not found"
+          fi
+
           # Build Next.js
           if [ -d "nextjs-test" ]; then
             echo "Building Next.js..."
@@ -122,23 +136,19 @@ jobs:
             echo "Skipping Next.js build - directory not found"
           fi
 
-          # Build Tuono (Rust)
-          if [ -d "tuono-test" ]; then
-            echo "Building Tuono..."
-            cd tuono-test
-            cargo build --release
-            cd ..
-          else
-            echo "Skipping Tuono build - directory not found"
-          fi
-
       - name: Run benchmarks
         run: |
-          chmod +x scripts/run-benchmarks.sh
-          ./scripts/run-benchmarks.sh
+          if [ -f "scripts/run-benchmarks.sh" ]; then
+            chmod +x scripts/run-benchmarks.sh
+            ./scripts/run-benchmarks.sh
+          else
+            echo "Error: scripts/run-benchmarks.sh not found"
+            exit 1
+          fi
 
       - name: Archive benchmark results
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: benchmark-results-${{ github.sha }}
           path: |

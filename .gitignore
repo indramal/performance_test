@@ -39,3 +39,4 @@ Thumbs.db
 
 # Keep reports in git (don't ignore)
 !reports/**/*.md
+.github/

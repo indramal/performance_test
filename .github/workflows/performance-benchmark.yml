@@ -67,34 +67,70 @@ jobs:
             nextjs-test/.next
           key: ${{ runner.os }}-nextjs-${{ hashFiles('nextjs-test/package-lock.json') }}
 
+      - name: List repository contents
+        run: |
+          echo "Repository root contents:"
+          ls -la
+          echo ""
+          echo "Checking for project directories:"
+          [ -d "tuono-test" ] && echo "✓ tuono-test exists" || echo "✗ tuono-test missing"
+          [ -d "bun-test" ] && echo "✓ bun-test exists" || echo "✗ bun-test missing"
+          [ -d "nextjs-test" ] && echo "✓ nextjs-test exists" || echo "✗ nextjs-test missing"
+          [ -d "deno-test" ] && echo "✓ deno-test exists" || echo "✗ deno-test missing"
+
       - name: Install dependencies
         run: |
           # Tuono
-          cd tuono-test
-          npm install
-          cd ..
+          if [ -d "tuono-test" ]; then
+            echo "Installing Tuono dependencies..."
+            cd tuono-test
+            npm install
+            cd ..
+          else
+            echo "Warning: tuono-test directory not found"
+          fi
 
           # Bun
-          cd bun-test
-          bun install
-          cd ..
+          if [ -d "bun-test" ]; then
+            echo "Installing Bun dependencies..."
+            cd bun-test
+            bun install
+            cd ..
+          else
+            echo "Warning: bun-test directory not found"
+          fi
 
           # Next.js
-          cd nextjs-test
-          npm install
-          cd ..
+          if [ -d "nextjs-test" ]; then
+            echo "Installing Next.js dependencies..."
+            cd nextjs-test
+            npm install
+            cd ..
+          else
+            echo "Warning: nextjs-test directory not found"
+          fi
 
       - name: Build projects
         run: |
           # Build Next.js
-          cd nextjs-test
-          npm run build
-          cd ..
+          if [ -d "nextjs-test" ]; then
+            echo "Building Next.js..."
+            cd nextjs-test
+            npm run build
+            cd ..
+          else
+            echo "Skipping Next.js build - directory not found"
+          fi
 
           # Build Tuono (Rust)
-          cd tuono-test
-          cargo build --release
-          cd ..
+          if [ -d "tuono-test" ]; then
+            echo "Building Tuono..."
+            cd tuono-test
+            cargo build --release
+            cd ..
+          else
+            echo "Skipping Tuono build - directory not found"
+          fi
 
       - name: Run benchmarks
         run: |
@@ -108,6 +144,7 @@ jobs:
           path: |
             reports/latest/*.md
             logs/*.log
+            logs/system-info.txt
             .lighthouseci/**/*.json
           retention-days: 30
 

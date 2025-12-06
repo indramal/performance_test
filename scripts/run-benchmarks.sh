@@ -88,7 +88,7 @@ wait_for_server() {
             echo -e "${GREEN}✓${NC} $name server is ready"
             return 0
         fi
-        attempt=$((attempt + 1)
+        attempt=$((attempt + 1))
         sleep $HEALTH_CHECK_INTERVAL
     done
     

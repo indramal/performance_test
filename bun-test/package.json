@@ -1,0 +1,20 @@
+{
+  "name": "bun-test",
+  "version": "0.0.1",
+  "description": "Bun SSR React application for performance testing",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/server.tsx",
+    "build": "bun build src/client.tsx --outdir=dist --target=browser --minify",
+    "start": "NODE_ENV=production bun run src/server.tsx"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "bun-types": "latest"
+  }
+}

@@ -16,6 +16,13 @@ target/
 # Build artifacts
 dist/
 build/
+.next/
+.fresh/
+_fresh/
+
+# Bun specific
+.bun/
+bun.lockb
 
 # Ignore env files (also in subfolders)
 .env
@@ -25,3 +32,10 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Benchmark artifacts
+.lighthouseci/
+*.wrk.log
+
+# Keep reports in git (don't ignore)
+!reports/**/*.md

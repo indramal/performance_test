@@ -219,23 +219,32 @@ function generateMarkdownReport() {
 
   md += `## 📊 Summary\n\n`;
 
-  // Summary table
+  // Summary table - sorted by Requests/sec (descending)
   md += `| Framework | Requests/sec | Avg Latency | Performance | Accessibility | SEO |\n`;
   md += `|-----------|--------------|-------------|-------------|---------------|-----|\n`;
 
-  FRAMEWORKS.forEach((framework) => {
-    const data = benchmarkData[framework];
-    if (data) {
-      const rps = data.wrk.requestsPerSec.toFixed(2);
-      const latency = data.wrk.avgLatency;
-      const perf = data.lighthouse ? `${data.lighthouse.performance}%` : "N/A";
-      const a11y = data.lighthouse
-        ? `${data.lighthouse.accessibility}%`
-        : "N/A";
-      const seo = data.lighthouse ? `${data.lighthouse.seo}%` : "N/A";
+  // Create array of frameworks with their data for sorting
+  const frameworksWithData = FRAMEWORKS.map((framework) => ({
+    name: framework,
+    data: benchmarkData[framework],
+  })).filter((item) => item.data); // Only include frameworks with data
 
-      md += `| **${framework}** | ${rps} | ${latency} | ${perf} | ${a11y} | ${seo} |\n`;
-    }
+  // Sort by Requests/sec (descending - highest first)
+  frameworksWithData.sort((a, b) => {
+    const rpsA = a.data.wrk.requestsPerSec || 0;
+    const rpsB = b.data.wrk.requestsPerSec || 0;
+    return rpsB - rpsA; // Descending order
+  });
+
+  // Generate sorted table rows
+  frameworksWithData.forEach(({ name, data }) => {
+    const rps = data.wrk.requestsPerSec.toFixed(2);
+    const latency = data.wrk.avgLatency;
+    const perf = data.lighthouse ? `${data.lighthouse.performance}%` : "N/A";
+    const a11y = data.lighthouse ? `${data.lighthouse.accessibility}%` : "N/A";
+    const seo = data.lighthouse ? `${data.lighthouse.seo}%` : "N/A";
+
+    md += `| **${name}** | ${rps} | ${latency} | ${perf} | ${a11y} | ${seo} |\n`;
   });
 
   md += `\n---\n\n`;

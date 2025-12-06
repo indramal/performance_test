@@ -5,25 +5,72 @@ set -e
 echo "🚀 Starting Performance Benchmarks"
 echo "=================================="
 
-# Configuration
-DURATION=30s
-THREADS=12
-CONNECTIONS=400
-RESULTS_DIR="reports/latest"
+# Load configuration from JSON
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CONFIG_FILE="$SCRIPT_DIR/../config/benchmark-config.json"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "❌ Configuration file not found: $CONFIG_FILE"
+    exit 1
+fi
+
+echo "📋 Loading configuration from: $CONFIG_FILE"
+
+# Check if jq is installed
+if ! command -v jq &> /dev/null; then
+    echo "❌ jq is required but not installed. Please install with: sudo apt-get install jq"
+    exit 1
+fi
+
+# Load benchmark configuration
+DURATION=$(jq -r '.benchmark.duration' "$CONFIG_FILE")
+THREADS=$(jq -r '.benchmark.threads' "$CONFIG_FILE")
+CONNECTIONS=$(jq -r '.benchmark.connections' "$CONFIG_FILE")
+RESULTS_DIR=$(jq -r '.benchmark.results_dir' "$CONFIG_FILE")
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+
+# Load server configuration
+STARTUP_WAIT=$(jq -r '.server.startup_wait_seconds' "$CONFIG_FILE")
+HEALTH_CHECK_MAX=$(jq -r '.server.health_check_max_attempts' "$CONFIG_FILE")
+HEALTH_CHECK_INTERVAL=$(jq -r '.server.health_check_interval_seconds' "$CONFIG_FILE")
+SHUTDOWN_WAIT=$(jq -r '.server.graceful_shutdown_wait_seconds' "$CONFIG_FILE")
+
+# Load Lighthouse configuration
+LIGHTHOUSE_RUNS=$(jq -r '.lighthouse.number_of_runs' "$CONFIG_FILE")
+LIGHTHOUSE_DIR=$(jq -r '.lighthouse.output_dir' "$CONFIG_FILE")
+
+# Load logging configuration
+LOG_DIR=$(jq -r '.logging.directory' "$CONFIG_FILE")
 
 # Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Frameworks and ports
-declare -A FRAMEWORKS=(
-    ["tuono"]="3000"
-    ["bun"]="3001"
-    ["nextjs"]="3002"
-    ["deno"]="3003"
-)
+# Load frameworks from config
+declare -A FRAMEWORKS
+declare -A FRAMEWORK_DIRS
+declare -A INSTALL_COMMANDS
+declare -A BUILD_COMMANDS
+declare -A START_COMMANDS
+
+for framework in $(jq -r '.frameworks | keys[]' "$CONFIG_FILE"); do
+    FRAMEWORKS["$framework"]=$(jq -r ".frameworks.\"$framework\".port" "$CONFIG_FILE")
+    FRAMEWORK_DIRS["$framework"]=$(jq -r ".frameworks.\"$framework\".directory" "$CONFIG_FILE")
+    INSTALL_COMMANDS["$framework"]=$(jq -r ".frameworks.\"$framework\".install_command" "$CONFIG_FILE")
+    BUILD_COMMANDS["$framework"]=$(jq -r ".frameworks.\"$framework\".build_command" "$CONFIG_FILE")
+    START_COMMANDS["$framework"]=$(jq -r ".frameworks.\"$framework\".start_command" "$CONFIG_FILE")
+done
+
+echo -e "${GREEN}✓${NC} Configuration loaded successfully"
+echo ""
+echo "Benchmark Settings:"
+echo "  Duration: $DURATION"
+echo "  Threads: $THREADS"
+echo "  Connections: $CONNECTIONS"
+echo "  Lighthouse Runs: $LIGHTHOUSE_RUNS"
+echo ""
 
 # Server PIDs
 declare -A SERVER_PIDS
@@ -32,18 +79,17 @@ declare -A SERVER_PIDS
 wait_for_server() {
     local port=$1
     local name=$2
-    local max_attempts=30
     local attempt=0
     
     echo "⏳ Waiting for $name server on port $port..."
     
-    while [ $attempt -lt $max_attempts ]; do
+    while [ $attempt -lt $HEALTH_CHECK_MAX ]; do
         if curl -s http://localhost:$port/ > /dev/null 2>&1; then
             echo -e "${GREEN}✓${NC} $name server is ready"
             return 0
         fi
-        attempt=$((attempt + 1))
-        sleep 1
+        attempt=$((attempt + 1)
+        sleep $HEALTH_CHECK_INTERVAL
     done
     
     echo "❌ Failed to connect to $name server on port $port"
@@ -62,8 +108,8 @@ cleanup() {
         fi
     done
     
-    # Wait a bit for graceful shutdown
-    sleep 2
+    # Wait for graceful shutdown
+    sleep $SHUTDOWN_WAIT
     
     # Force kill any remaining processes
     for port in "${FRAMEWORKS[@]}"; do
@@ -75,7 +121,7 @@ trap cleanup EXIT
 
 echo ""
 echo "💻 Collecting system information..."
-mkdir -p logs
+mkdir -p "$LOG_DIR"
 
 # Collect system information
 {
@@ -145,80 +191,59 @@ mkdir -p logs
     echo "Date & Time:"
     date
     echo ""
-} > logs/system-info.txt
+} > "$LOG_DIR/system-info.txt"
 
-cat logs/system-info.txt
+cat "$LOG_DIR/system-info.txt"
 echo ""
 
 echo "📦 Installing dependencies..."
 
-# Install Tuono dependencies
-if [ -d "tuono-test" ]; then
-    echo -e "${BLUE}Tuono:${NC} Installing dependencies"
-    cd tuono-test
-    npm install > /dev/null 2>&1 || true
-    cd ..
-fi
-
-# Install Bun dependencies
-if [ -d "bun-test" ] && command -v bun &> /dev/null; then
-    echo -e "${BLUE}Bun:${NC} Installing dependencies"
-    cd bun-test
-    bun install > /dev/null 2>&1 || true
-    cd ..
-fi
-
-# Install Next.js dependencies
-if [ -d "nextjs-test" ]; then
-    echo -e "${BLUE}Next.js:${NC} Installing dependencies"
-    cd nextjs-test
-    npm install > /dev/null 2>&1 || true
-    npm run build > /dev/null 2>&1 || true
-    cd ..
-fi
+for name in "${!FRAMEWORKS[@]}"; do
+    dir="${FRAMEWORK_DIRS[$name]}"
+    install_cmd="${INSTALL_COMMANDS[$name]}"
+    build_cmd="${BUILD_COMMANDS[$name]}"
+    
+    if [ -d "$dir" ]; then
+        echo -e "${BLUE}$name:${NC} Installing dependencies"
+        cd "$dir"
+        
+        # Run install command if not null
+        if [ "$install_cmd" != "null" ] && [ ! -z "$install_cmd" ]; then
+            eval "$install_cmd" > /dev/null 2>&1 || echo -e "${YELLOW}⚠${NC}  Install failed for $name"
+        fi
+        
+        # Run build command if not null
+        if [ "$build_cmd" != "null" ] && [ ! -z "$build_cmd" ]; then
+            echo -e "${BLUE}$name:${NC} Building project"
+            eval "$build_cmd" > /dev/null 2>&1 || echo -e "${YELLOW}⚠${NC}  Build failed for $name"
+        fi
+        
+        cd ..
+    else
+        echo -e "${YELLOW}⚠${NC}  Directory not found: $dir (skipping $name)"
+    fi
+done
 
 echo ""
 echo "🏗️  Starting servers..."
 
-# Start Tuono server
-if [ -d "tuono-test" ]; then
-    cd tuono-test
-    echo -e "${BLUE}Tuono:${NC} Starting on port 3000"
-    cargo run --release > ../logs/tuono.log 2>&1 &
-    SERVER_PIDS["tuono"]=$!
-    cd ..
-fi
-
-# Start Bun server
-if [ -d "bun-test" ] && command -v bun &> /dev/null; then
-    cd bun-test
-    echo -e "${BLUE}Bun:${NC} Starting on port 3001"
-    NODE_ENV=production bun run src/server.tsx > ../logs/bun.log 2>&1 &
-    SERVER_PIDS["bun"]=$!
-    cd ..
-fi
-
-# Start Next.js server
-if [ -d "nextjs-test" ]; then
-    cd nextjs-test
-    echo -e "${BLUE}Next.js:${NC} Starting on port 3002"
-    npm run start > ../logs/nextjs.log 2>&1 &
-    SERVER_PIDS["nextjs"]=$!
-    cd ..
-fi
-
-# Start Deno server
-if [ -d "deno-test" ] && command -v deno &> /dev/null; then
-    cd deno-test
-    echo -e "${BLUE}Deno:${NC} Starting on port 3003"
-    deno run -A main.ts > ../logs/deno.log 2>&1 &
-    SERVER_PIDS["deno"]=$!
-    cd ..
-fi
+for name in "${!FRAMEWORKS[@]}"; do
+    dir="${FRAMEWORK_DIRS[$name]}"
+    start_cmd="${START_COMMANDS[$name]}"
+    port="${FRAMEWORKS[$name]}"
+    
+    if [ -d "$dir" ]; then
+        echo -e "${BLUE}$name:${NC} Starting on port $port"
+        cd "$dir"
+        eval "$start_cmd" > "../$LOG_DIR/${name}.log" 2>&1 &
+        SERVER_PIDS["$name"]=$!
+        cd ..
+    fi
+done
 
 echo ""
 echo "⏳ Waiting for all servers to be ready..."
-sleep 5
+sleep $STARTUP_WAIT
 
 # Wait for each server
 for name in "${!FRAMEWORKS[@]}"; do
@@ -230,14 +255,14 @@ done
 
 echo ""
 echo "📊 Running wrk benchmarks..."
-mkdir -p logs
+mkdir -p "$LOG_DIR"
 
 # Run wrk for each framework
 for name in "${!FRAMEWORKS[@]}"; do
     port=${FRAMEWORKS[$name]}
     if [ ! -z "${SERVER_PIDS[$name]}" ]; then
         echo -e "${BLUE}$name:${NC} Running benchmark..."
-        wrk -t$THREADS -c$CONNECTIONS -d$DURATION http://localhost:$port/ > "logs/${name}_wrk.log" 2>&1
+        wrk -t$THREADS -c$CONNECTIONS -d$DURATION http://localhost:$port/ > "$LOG_DIR/${name}_wrk.log" 2>&1
         echo -e "${GREEN}✓${NC} Completed"
     fi
 done
@@ -251,7 +276,7 @@ if ! command -v lhci &> /dev/null; then
     npm install -g @lhci/cli > /dev/null 2>&1
 fi
 
-mkdir -p .lighthouseci
+mkdir -p "$LIGHTHOUSE_DIR"
 
 # Run Lighthouse for each framework
 for name in "${!FRAMEWORKS[@]}"; do
@@ -260,9 +285,9 @@ for name in "${!FRAMEWORKS[@]}"; do
         echo -e "${BLUE}$name:${NC} Running Lighthouse..."
         lhci autorun \
             --collect.url="http://localhost:$port/" \
-            --collect.numberOfRuns=3 \
+            --collect.numberOfRuns=$LIGHTHOUSE_RUNS \
             --upload.target=filesystem \
-            --upload.outputDir=".lighthouseci/$name" \
+            --upload.outputDir="$LIGHTHOUSE_DIR/$name" \
             > /dev/null 2>&1 || echo "Warning: Lighthouse failed for $name"
         echo -e "${GREEN}✓${NC} Completed"
     fi

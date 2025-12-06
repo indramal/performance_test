@@ -1,0 +1,69 @@
+{
+  "benchmark": {
+    "duration": "30s",
+    "threads": 12,
+    "connections": 400,
+    "results_dir": "reports/latest"
+  },
+  "frameworks": {
+    "tuono": {
+      "port": 3000,
+      "directory": "tuono-test",
+      "install_command": "npm install",
+      "build_command": null,
+      "start_command": "cargo run --release",
+      "health_check_path": "/"
+    },
+    "bun": {
+      "port": 3001,
+      "directory": "bun-test",
+      "install_command": "bun install",
+      "build_command": null,
+      "start_command": "NODE_ENV=production bun run src/server.tsx",
+      "health_check_path": "/"
+    },
+    "nextjs": {
+      "port": 3002,
+      "directory": "nextjs-test",
+      "install_command": "npm install",
+      "build_command": "npm run build",
+      "start_command": "npm run start",
+      "health_check_path": "/"
+    },
+    "deno": {
+      "port": 3003,
+      "directory": "deno-test",
+      "install_command": null,
+      "build_command": null,
+      "start_command": "deno run -A main.ts",
+      "health_check_path": "/"
+    }
+  },
+  "lighthouse": {
+    "number_of_runs": 3,
+    "output_dir": ".lighthouseci",
+    "collect_settings": {
+      "preset": "desktop",
+      "throttling": {
+        "rttMs": 40,
+        "throughputKbps": 10240,
+        "cpuSlowdownMultiplier": 1
+      }
+    }
+  },
+  "server": {
+    "startup_wait_seconds": 5,
+    "health_check_max_attempts": 30,
+    "health_check_interval_seconds": 1,
+    "graceful_shutdown_wait_seconds": 2
+  },
+  "system_info": {
+    "enabled": true,
+    "output_file": "logs/system-info.txt"
+  },
+  "logging": {
+    "directory": "logs",
+    "server_logs": true,
+    "benchmark_logs": true
+  }
+}

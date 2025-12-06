@@ -7,7 +7,7 @@ const path = require("path");
 const FRAMEWORKS = ["tuono", "bun", "nextjs", "deno"];
 const LOGS_DIR = "logs";
 const LIGHTHOUSE_DIR = ".lighthouseci";
-const REPORTS_DIR = "reports/latest";
+const REPORTS_DIR = "reports";
 const TIMESTAMP = new Date().toISOString().replace(/[:.]/g, "-");
 
 // Ensure reports directory exists
@@ -303,11 +303,10 @@ function generateMarkdownReport() {
 
 // Generate and save report
 const report = generateMarkdownReport();
-const reportPath = path.join(REPORTS_DIR, `benchmark-${TIMESTAMP}.md`);
-const indexPath = path.join(REPORTS_DIR, "index.md");
+const logsReportPath = path.join(LOGS_DIR, "benchmark-report.md");
 
-fs.writeFileSync(reportPath, report);
-fs.writeFileSync(indexPath, report);
+// Save to logs for GitHub Actions workflow to pick up
+fs.writeFileSync(logsReportPath, report);
 
-console.log(`✅ Report generated: ${reportPath}`);
-console.log(`✅ Updated: ${indexPath}`);
+console.log(`✅ Report generated and saved to: ${logsReportPath}`);
+console.log(`📋 Workflow will copy to: reports/benchmark-[timestamp].md`);

@@ -41,5 +41,6 @@ Thumbs.db
 !reports/**/*.md
 
 # GitHub - ignore everything except workflows
+.github
 .github/*
 !.github/workflows/

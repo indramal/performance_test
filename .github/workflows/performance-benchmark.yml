@@ -37,6 +37,9 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Install Tuono CLI
+        run: cargo install tuono --version 0.19.7
+
       - name: Install wrk
         run: |
           sudo apt-get update
@@ -113,12 +116,12 @@ jobs:
 
       - name: Build projects
         run: |
-          # Build Tuono (IMPORTANT: Run tuono build first, then cargo build)
+          # Build Tuono
           if [ -d "tuono-test" ]; then
             echo "Building Tuono..."
             cd tuono-test
             echo "Running tuono build..."
-            npx tuono build
+            tuono build
             echo "Running cargo build..."
             cargo build --release
             cd ..

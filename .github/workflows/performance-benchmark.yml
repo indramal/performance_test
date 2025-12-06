@@ -1,0 +1,157 @@
+name: Performance Benchmarks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install wrk
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wrk
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Cache Tuono dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            tuono-test/target
+            tuono-test/node_modules
+          key: ${{ runner.os }}-tuono-${{ hashFiles('tuono-test/Cargo.lock', 'tuono-test/package-lock.json') }}
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v3
+        with:
+          path: bun-test/node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun-test/package.json') }}
+
+      - name: Cache Next.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            nextjs-test/node_modules
+            nextjs-test/.next
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('nextjs-test/package-lock.json') }}
+
+      - name: Install dependencies
+        run: |
+          # Tuono
+          cd tuono-test
+          npm install
+          cd ..
+
+          # Bun
+          cd bun-test
+          bun install
+          cd ..
+
+          # Next.js
+          cd nextjs-test
+          npm install
+          cd ..
+
+      - name: Build projects
+        run: |
+          # Build Next.js
+          cd nextjs-test
+          npm run build
+          cd ..
+
+          # Build Tuono (Rust)
+          cd tuono-test
+          cargo build --release
+          cd ..
+
+      - name: Run benchmarks
+        run: |
+          chmod +x scripts/run-benchmarks.sh
+          ./scripts/run-benchmarks.sh
+
+      - name: Archive benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-${{ github.sha }}
+          path: |
+            reports/latest/*.md
+            logs/*.log
+            .lighthouseci/**/*.json
+          retention-days: 30
+
+      - name: Commit reports
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Create history folder with date
+          DATE=$(date +%Y-%m-%d)
+          mkdir -p reports/history/$DATE
+
+          # Copy latest report to history
+          if [ -f reports/latest/index.md ]; then
+            cp reports/latest/index.md reports/history/$DATE/benchmark-$(date +%Y%m%d_%H%M%S).md
+          fi
+
+          # Add and commit
+          git add reports/
+          git diff --quiet && git diff --staged --quiet || git commit -m "docs: Update performance benchmarks [skip ci]"
+
+      - name: Push changes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'reports/latest/index.md';
+
+            if (fs.existsSync(reportPath)) {
+              const report = fs.readFileSync(reportPath, 'utf8');
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## 📊 Performance Benchmark Results\n\n${report}`
+              });
+            }

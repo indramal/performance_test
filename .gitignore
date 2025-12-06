@@ -1,6 +1,6 @@
-# Logs
-logs
-*.log
+# Logs - allow logs folder and its contents
+# Ignore log files in root and subdirectories except logs/
+/*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -35,7 +35,6 @@ Thumbs.db
 
 # Benchmark artifacts
 .lighthouseci/
-*.wrk.log
 
 # Keep reports in git (don't ignore)
 !reports/**/*.md

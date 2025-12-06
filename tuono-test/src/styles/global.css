@@ -4,7 +4,6 @@
   0% {
     transform: rotate(0deg);
   }
-
   100% {
     transform: rotate(360deg);
   }
@@ -24,7 +23,7 @@ body {
 }
 
 main {
-  width: 673px;
+  max-width: 673px;
   margin: 20px auto;
 }
 

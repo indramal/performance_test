@@ -1,9 +1,7 @@
-# Tuono tutorial
+# Tuono starter
 
-This project is the outcome of the [tuono tutorial](https://tuono.dev/documentation/tutorial)
-
-If you want to directly install it you can run:
+This is the starter tuono project. To download it run in your terminal:
 
 ```sh
-tuono new -t tuono-tutorial
+tuono new my-first-tuono-app
 ```

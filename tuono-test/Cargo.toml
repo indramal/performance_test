@@ -1,5 +1,5 @@
 [package]
-name = "tuono-tutorial"
+name = "tuono-app"
 version = "0.0.1"
 edition = "2024"
 
@@ -10,5 +10,4 @@ path = ".tuono/main.rs"
 [dependencies]
 tuono_lib = "0.19.7"
 serde = { version = "1.0.202", features = ["derive"] }
-reqwest = "0.12.9"
 

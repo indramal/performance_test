@@ -1,11 +1,5 @@
 import type { TuonoConfig } from 'tuono/config'
 
-const config: TuonoConfig = {
-  vite: {
-    alias: {
-      '@': 'src',
-    },
-  },
-}
+const config: TuonoConfig = {}
 
 export default config

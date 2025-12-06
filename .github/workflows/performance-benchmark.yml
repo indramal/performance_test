@@ -152,7 +152,8 @@ jobs:
         with:
           name: benchmark-results
           path: |
-            reports/latest/*.md
+            reports/*.md
+            logs/benchmark-report.md
             logs/*.log
             logs/system-info.txt
             .lighthouseci/**/*.json
@@ -164,18 +165,27 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-          # Create history folder with date
-          DATE=$(date +%Y-%m-%d)
-          mkdir -p reports/history/$DATE
+          # Create reports folder
+          mkdir -p reports
 
-          # Copy latest report to history
-          if [ -f reports/latest/index.md ]; then
-            cp reports/latest/index.md reports/history/$DATE/benchmark-$(date +%Y%m%d_%H%M%S).md
+          # Generate report filename with timestamp
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          REPORT_NAME="benchmark-$TIMESTAMP.md"
+
+          # Copy generated report to reports folder
+          if [ -f logs/benchmark-report.md ]; then
+            cp logs/benchmark-report.md reports/$REPORT_NAME
           fi
 
-          # Add and commit reports
-          git add reports/
-          git diff --quiet && git diff --staged --quiet || git commit -m "docs: Update performance benchmarks [skip ci]"
+          # Clean logs folder but keep .gitkeep if it exists
+          find logs -type f ! -name '.gitkeep' -delete
+
+          # Add log files to git
+          git add logs/
+
+          # Add and commit report
+          git add reports/$REPORT_NAME
+          git diff --quiet && git diff --staged --quiet || git commit -m "docs: Add benchmark report $REPORT_NAME [skip ci]"
 
           # Push changes
           git push

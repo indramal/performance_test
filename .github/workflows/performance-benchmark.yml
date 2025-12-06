@@ -1,13 +1,10 @@
 name: Performance Benchmarks
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   benchmark:
@@ -40,10 +37,10 @@ jobs:
       - name: Install Tuono CLI
         run: cargo install tuono --version 0.19.7
 
-      - name: Install wrk
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y wrk
+          sudo apt-get install -y wrk jq
 
       - name: Install Lighthouse CI
         run: npm install -g @lhci/cli
@@ -149,23 +146,23 @@ jobs:
             exit 1
           fi
 
-      - name: Archive benchmark results
-        uses: actions/upload-artifact@v4
+      - name: Upload benchmark results as artifact
+        uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: benchmark-results-${{ github.sha }}
+          name: benchmark-results
           path: |
             reports/latest/*.md
             logs/*.log
             logs/system-info.txt
             .lighthouseci/**/*.json
-          retention-days: 30
 
-      - name: Commit reports
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Commit and Push Reports
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
 
           # Create history folder with date
           DATE=$(date +%Y-%m-%d)
@@ -176,32 +173,9 @@ jobs:
             cp reports/latest/index.md reports/history/$DATE/benchmark-$(date +%Y%m%d_%H%M%S).md
           fi
 
-          # Add and commit
+          # Add and commit reports
           git add reports/
           git diff --quiet && git diff --staged --quiet || git commit -m "docs: Update performance benchmarks [skip ci]"
 
-      - name: Push changes
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
-
-      - name: Comment PR with results
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const reportPath = 'reports/latest/index.md';
-
-            if (fs.existsSync(reportPath)) {
-              const report = fs.readFileSync(reportPath, 'utf8');
-              
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: `## 📊 Performance Benchmark Results\n\n${report}`
-              });
-            }
+          # Push changes
+          git push

@@ -3,10 +3,9 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "vite dev --port 3006",
-    "build": "vite build && tsc --noEmit",
-    "preview": "vite preview",
-    "start": "node .output/server/index.mjs"
+    "dev": "vinxi dev --port 3006",
+    "build": "vinxi build",
+    "start": "vinxi start"
   },
   "dependencies": {
     "@tanstack/react-router": "^1.139.14",
@@ -20,6 +19,7 @@
     "@vitejs/plugin-react": "^4.6.0",
     "typescript": "^5.7.2",
     "vite": "^7.1.7",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vinxi": "^0.4.3"
   }
 }

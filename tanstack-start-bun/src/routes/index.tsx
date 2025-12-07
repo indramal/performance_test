@@ -1,31 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-
-const getSubtitle = createServerFn("GET", async () => {
-  return { subtitle: "The react / rust fullstack framework" };
-});
 
 export const Route = createFileRoute("/")({
   component: Home,
-  loader: async () => await getSubtitle(),
 });
 
 function Home() {
-  const data = Route.useLoaderData();
+  const subtitle = "Performance testing with TanStack Start and Bun";
 
   return (
     <>
       <header className="header">
-        <a href="https://crates.io/crates/tuono" target="_blank">
-          Crates
+        <a
+          href="https://tanstack.com/start"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Docs
         </a>
-        <a href="https://www.npmjs.com/package/tuono" target="_blank">
-          Npm
+        <a
+          href="https://github.com/TanStack/router"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          GitHub
         </a>
       </header>
       <div className="title-wrap">
         <h1 className="title">
-          TU<span>O</span>NO
+          TAN<span>STACK</span> START
         </h1>
         <div className="logo">
           <img src="/rust.svg" className="rust" alt="Rust logo" />
@@ -33,14 +35,15 @@ function Home() {
         </div>
       </div>
       <div className="subtitle-wrap">
-        <p className="subtitle">{data.subtitle}</p>
+        <p className="subtitle">{subtitle}</p>
         <a
-          href="https://github.com/tuono-labs/tuono"
+          href="https://bun.sh"
           target="_blank"
+          rel="noopener noreferrer"
           className="button"
           type="button"
         >
-          Github
+          Powered by Bun
         </a>
       </div>
     </>

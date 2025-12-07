@@ -67,6 +67,32 @@ jobs:
             nextjs-test/.next
           key: ${{ runner.os }}-nextjs-${{ hashFiles('nextjs-test/package-lock.json') }}
 
+      - name: Cache Astro CSR dependencies
+        uses: actions/cache@v3
+        with:
+          path: astro-react-csr/node_modules
+          key: ${{ runner.os }}-astro-csr-${{ hashFiles('astro-react-csr/package-lock.json') }}
+
+      - name: Cache Astro Bun SSR dependencies
+        uses: actions/cache@v3
+        with:
+          path: astro-react-bun-ssr/node_modules
+          key: ${{ runner.os }}-astro-bun-ssr-${{ hashFiles('astro-react-bun-ssr/package.json') }}
+
+      - name: Cache TanStack Start dependencies
+        uses: actions/cache@v3
+        with:
+          path: tanstack-start-bun/node_modules
+          key: ${{ runner.os }}-tanstack-${{ hashFiles('tanstack-start-bun/package.json') }}
+
+      - name: Cache Askama dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            astro-react-askama/node_modules
+            astro-react-askama/target
+          key: ${{ runner.os }}-askama-${{ hashFiles('astro-react-askama/package.json', 'astro-react-askama/Cargo.toml') }}
+
       - name: List repository contents
         run: |
           echo "Repository root contents:"
@@ -77,6 +103,10 @@ jobs:
           [ -d "bun-test" ] && echo "✓ bun-test exists" || echo "✗ bun-test missing"
           [ -d "nextjs-test" ] && echo "✓ nextjs-test exists" || echo "✗ nextjs-test missing"
           [ -d "deno-test" ] && echo "✓ deno-test exists" || echo "✗ deno-test missing"
+          [ -d "astro-react-csr" ] && echo "✓ astro-react-csr exists" || echo "✗ astro-react-csr missing"
+          [ -d "astro-react-bun-ssr" ] && echo "✓ astro-react-bun-ssr exists" || echo "✗ astro-react-bun-ssr missing"
+          [ -d "tanstack-start-bun" ] && echo "✓ tanstack-start-bun exists" || echo "✗ tanstack-start-bun missing"
+          [ -d "astro-react-askama" ] && echo "✓ astro-react-askama exists" || echo "✗ astro-react-askama missing"
           [ -d "scripts" ] && echo "✓ scripts exists" || echo "✗ scripts missing"
 
       - name: Install dependencies
@@ -111,6 +141,38 @@ jobs:
             echo "Warning: nextjs-test directory not found"
           fi
 
+          # Astro CSR
+          if [ -d "astro-react-csr" ]; then
+            echo "Installing Astro CSR dependencies..."
+            cd astro-react-csr
+            npm install
+            cd ..
+          fi
+
+          # Astro Bun SSR
+          if [ -d "astro-react-bun-ssr" ]; then
+            echo "Installing Astro Bun SSR dependencies..."
+            cd astro-react-bun-ssr
+            bun install
+            cd ..
+          fi
+
+          # TanStack Start
+          if [ -d "tanstack-start-bun" ]; then
+            echo "Installing TanStack Start dependencies..."
+            cd tanstack-start-bun
+            bun install
+            cd ..
+          fi
+
+          # Astro Askama
+          if [ -d "astro-react-askama" ]; then
+            echo "Installing Astro Askama dependencies..."
+            cd astro-react-askama
+            npm install
+            cd ..
+          fi
+
       - name: Build projects
         run: |
           # Build Tuono
@@ -134,6 +196,39 @@ jobs:
             cd ..
           else
             echo "Skipping Next.js build - directory not found"
+          fi
+
+          # Build Astro CSR
+          if [ -d "astro-react-csr" ]; then
+            echo "Building Astro CSR..."
+            cd astro-react-csr
+            npm run build
+            cd ..
+          fi
+
+          # Build Astro Bun SSR
+          if [ -d "astro-react-bun-ssr" ]; then
+            echo "Building Astro Bun SSR..."
+            cd astro-react-bun-ssr
+            bun run build
+            cd ..
+          fi
+
+          # Build TanStack Start
+          if [ -d "tanstack-start-bun" ]; then
+            echo "Building TanStack Start..."
+            cd tanstack-start-bun
+            bun run build
+            cd ..
+          fi
+
+          # Build Astro Askama
+          if [ -d "astro-react-askama" ]; then
+            echo "Building Astro Askama..."
+            cd astro-react-askama
+            npm run build
+            cargo build --release
+            cd ..
           fi
 
       - name: Run benchmarks

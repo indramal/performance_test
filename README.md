@@ -1,15 +1,19 @@
 # Multi-Framework Performance Testing
 
-Comprehensive performance benchmarking framework comparing **Tuono**, **Bun**, **Next.js**, and **Deno** with identical UI and backend implementations.
+Comprehensive performance benchmarking framework comparing **Tuono**, **Bun**, **Next.js**, **Deno**, **Astro (CSR)**, **Astro (SSR)**, **TanStack Start**, and **Astro+Askama** with identical UI and backend implementations.
 
 ## 🎯 Overview
 
-This repository contains four equivalent SSR (Server-Side Rendering) React applications built with different frameworks:
+This repository contains eight equivalent SSR/CSR React applications built with different frameworks:
 
-- **Tuono** (Rust + React) - Port 3000
+- **Tuono** (Rust + React SSR) - Port 3000
 - **Bun** (Bun runtime + React) - Port 3001
-- **Next.js** (Node.js + React) - Port 3002
+- **Next.js** (Node.js + React SSR) - Port 3002
 - **Deno Fresh** (Deno + Preact) - Port 3003
+- **Astro + React CSR** (Client-Side Rendering) - Port 3004
+- **Astro + React + Bun SSR** (Server-Side Rendering with Bun) - Port 3005
+- **TanStack Start + Bun** (SSR with TanStack Router) - Port 3006
+- **Astro + React + Askama** (Hybrid: Rust templating + React CSR) - Port 3007
 
 All applications implement the same UI and functionality for fair performance comparison.
 
@@ -61,13 +65,19 @@ cat reports/latest/index.md
 
 ```
 performance_test/
-├── tuono-test/          # Tuono (Rust + React)
-├── bun-test/            # Bun SSR
-├── nextjs-test/         # Next.js 14+
-├── deno-test/           # Deno Fresh
+├── tuono-test/           # Tuono (Rust + React SSR)
+├── bun-test/             # Bun SSR
+├── nextjs-test/          # Next.js 14+
+├── deno-test/            # Deno Fresh
+├── astro-react-csr/      # Astro + React (CSR)
+├── astro-react-bun-ssr/  # Astro + React + Bun (SSR)
+├── tanstack-start-bun/   # TanStack Start + Bun
+├── astro-react-askama/   # Astro + React + Askama
 ├── scripts/
 │   ├── run-benchmarks.sh     # Main benchmark orchestrator
 │   └── generate-report.js    # Report generator
+├── config/
+│   └── benchmark-config.json # Framework configuration
 ├── reports/
 │   ├── latest/          # Latest benchmark results
 │   └── history/         # Historical archives
@@ -108,6 +118,43 @@ npm run start
 cd deno-test
 deno task start
 # Server: http://localhost:3003
+```
+
+### Astro + React (CSR)
+```bash
+cd astro-react-csr
+npm install
+npm run build
+npm run preview -- --port 3004
+# Server: http://localhost:3004
+```
+
+### Astro + React + Bun (SSR)
+```bash
+cd astro-react-bun-ssr
+bun install
+bun run build
+bun run ./dist/server/entry.mjs
+# Server: http://localhost:3005
+```
+
+### TanStack Start + Bun
+```bash
+cd tanstack-start-bun
+bun install
+bun run build
+bun run .output/server/index.mjs
+# Server: http://localhost:3006
+```
+
+### Astro + React + Askama
+```bash
+cd astro-react-askama
+npm install
+npm run build
+cargo build --release
+cargo run --release
+# Server: http://localhost:3007
 ```
 
 ## 🤖 GitHub Actions
@@ -168,6 +215,10 @@ Expected baseline metrics:
 | Bun       | 12000+       | < 15ms      | 90+               |
 | Next.js   | 8000+        | < 20ms      | 90+               |
 | Deno      | 10000+       | < 15ms      | 92+               |
+| Astro CSR | 9000+        | < 18ms      | 92+               |
+| Astro SSR | 11000+       | < 16ms      | 93+               |
+| TanStack  | 10000+       | < 17ms      | 91+               |
+| Askama    | 14000+       | < 12ms      | 94+               |
 
 *Actual results vary based on hardware and configuration*
 

@@ -3,8 +3,10 @@
 const fs = require("fs");
 const path = require("path");
 
-// Configuration
-const FRAMEWORKS = ["tuono", "bun", "nextjs", "deno"];
+// Load frameworks dynamically from config
+const CONFIG_FILE = path.join(__dirname, "../config/benchmark-config.json");
+const config = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+const FRAMEWORKS = Object.keys(config.frameworks);
 const LOGS_DIR = "logs";
 const LIGHTHOUSE_DIR = ".lighthouseci";
 const REPORTS_DIR = "reports";

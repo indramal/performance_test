@@ -37,6 +37,38 @@
       "build_command": null,
       "start_command": "deno run -A main.ts",
       "health_check_path": "/"
+    },
+    "astro-react-csr": {
+      "port": 3004,
+      "directory": "astro-react-csr",
+      "install_command": "npm install",
+      "build_command": "npm run build",
+      "start_command": "npm run preview -- --port 3004 --host",
+      "health_check_path": "/"
+    },
+    "astro-react-bun-ssr": {
+      "port": 3005,
+      "directory": "astro-react-bun-ssr",
+      "install_command": "bun install",
+      "build_command": "bun run build",
+      "start_command": "bun run ./dist/server/entry.mjs",
+      "health_check_path": "/"
+    },
+    "tanstack-start-bun": {
+      "port": 3006,
+      "directory": "tanstack-start-bun",
+      "install_command": "bun install",
+      "build_command": "bun run build",
+      "start_command": "bun run .output/server/index.mjs",
+      "health_check_path": "/"
+    },
+    "astro-react-askama": {
+      "port": 3007,
+      "directory": "astro-react-askama",
+      "install_command": "npm install",
+      "build_command": "npm run build",
+      "start_command": "cargo run --release",
+      "health_check_path": "/"
     }
   },
   "lighthouse": {

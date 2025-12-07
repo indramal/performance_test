@@ -43,3 +43,31 @@ Thumbs.db
 .github
 .github/*
 !.github/workflows/
+
+# Bun test
+bun-test/node_modules/
+bun-test/.turbo/
+
+# Astro React CSR
+astro-react-csr/node_modules/
+astro-react-csr/dist/
+astro-react-csr/.astro/
+
+# Astro React Bun SSR
+astro-react-bun-ssr/node_modules/
+astro-react-bun-ssr/dist/
+astro-react-bun-ssr/.astro/
+
+# TanStack Start Bun
+tanstack-start-bun/node_modules/
+tanstack-start-bun/.output/
+tanstack-start-bun/.vinxi/
+tanstack-start-bun/dist/
+
+# Astro React Askama
+astro-react-askama/node_modules/
+astro-react-askama/target/
+astro-react-askama/.astro/
+astro-react-askama/src/dist/
+astro-react-askama/dist/
+astro-react-askama/Cargo.lock

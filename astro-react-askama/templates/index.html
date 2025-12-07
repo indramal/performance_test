@@ -15,7 +15,7 @@
           sans-serif;
         display: flex;
         justify-content: center;
-        align-items: cent;
+        align-items: center;
         min-height: 100vh;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       }
@@ -35,10 +35,13 @@
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>{{ title }}</h1>
-      <p>{{ description }}</p>
-      <p>Performance Testing - Server-Side Rendered with Askama</p>
+    <div id="root">
+      <div class="container">
+        <h1>{{ title }}</h1>
+        <p>{{ description }}</p>
+        <p>Performance Testing - Server-Side Rendered with Askama</p>
+      </div>
     </div>
+    <script type="module" src="/assets/client.js"></script>
   </body>
 </html>

@@ -1,48 +1,39 @@
-import { createRootRoute } from "@tanstack/react-router";
-import { Outlet, ScrollRestoration } from "@tanstack/react-router";
-import { Body, Head, Html, Meta, Scripts } from "@tanstack/react-start";
-import * as React from "react";
+import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import "../styles/global.css";
 
 export const Route = createRootRoute({
-  meta: () => [
-    {
-      charSet: "utf-8",
-    },
-    {
-      name: "viewport",
-      content: "width=device-width, initial-scale=1",
-    },
-    {
-      title: "Tuono - TanStack Start Bun",
-    },
-    {
-      name: "description",
-      content: "The react / rust fullstack framework",
-    },
-  ],
-  component: RootComponent,
-});
+  head: () => ({
+    meta: [
+      {
+        charSet: "utf-8",
+      },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1",
+      },
+      {
+        title: "TanStack Start - Performance Test",
+      },
+      {
+        name: "description",
+        content: "Performance testing with TanStack Start and Bun",
+      },
+    ],
+  }),
 
-function RootComponent() {
-  return (
-    <RootDocument>
-      <Outlet />
-    </RootDocument>
-  );
-}
+  shellComponent: RootDocument,
+});
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <Html>
-      <Head>
-        <Meta />
-      </Head>
-      <Body>
-        <main>{children}</main>
-        <ScrollRestoration />
+    <html lang="en">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
         <Scripts />
-      </Body>
-    </Html>
+      </body>
+    </html>
   );
 }

@@ -59,7 +59,7 @@
       "directory": "tanstack-start-bun",
       "install_command": "bun install",
       "build_command": "bun run build",
-      "start_command": "bun run .output/server/index.mjs",
+      "start_command": "bun run start",
       "health_check_path": "/"
     },
     "astro-react-askama": {

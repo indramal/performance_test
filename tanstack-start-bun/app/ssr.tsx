@@ -1,17 +1,6 @@
-import {
-  StartClient,
-  defaultTransformer,
-  createStartHandler,
-} from "@tanstack/start";
+import { StartServer } from "@tanstack/react-start/server";
 import { createRouter } from "./router";
 
-const router = createRouter();
-
-if (typeof document !== "undefined") {
-  StartClient({ router });
+export default function handler() {
+  return <StartServer router={createRouter()} />;
 }
-
-export const handler = createStartHandler({
-  createRouter,
-  transformer: defaultTransformer,
-});

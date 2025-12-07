@@ -1,6 +1,6 @@
 import { createRootRoute } from "@tanstack/react-router";
 import { Outlet, ScrollRestoration } from "@tanstack/react-router";
-import { Body, Head, Html, Meta, Scripts } from "@tanstack/start";
+import { Body, Head, Html, Meta, Scripts } from "@tanstack/react-start";
 import * as React from "react";
 import "../styles/global.css";
 

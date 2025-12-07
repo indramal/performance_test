@@ -67,7 +67,7 @@
       "directory": "astro-react-askama",
       "install_command": "npm install",
       "build_command": "npm run build && cargo build --release",
-      "start_command": "cargo run --release",
+      "start_command": "./target/release/astro-react-askama",
       "health_check_path": "/"
     }
   },

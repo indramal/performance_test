@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start/server";
+import { createServerFn } from "@tanstack/react-start";
 
 const getSubtitle = createServerFn("GET", async () => {
   return { subtitle: "The react / rust fullstack framework" };

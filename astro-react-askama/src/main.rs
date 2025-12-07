@@ -29,7 +29,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .nest_service("/assets", ServeDir::new("src/dist/assets"))
-        .nest_service("/", ServeDir::new("public"));
+        .fallback_service(ServeDir::new("public"));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3007));
     println!("🚀 Server running on http://localhost:3007");

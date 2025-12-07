@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -6,10 +6,39 @@
     <title>{{ title }}</title>
     <meta name="description" content="{{ description }}" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <link rel="stylesheet" href="/assets/main.css" />
+    <style>
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: cent;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .container {
+        text-align: center;
+        color: white;
+        padding: 2rem;
+      }
+      h1 {
+        font-size: 3rem;
+        margin: 0;
+      }
+      p {
+        font-size: 1.5rem;
+        margin: 1rem 0;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/assets/main.js"></script>
+    <div class="container">
+      <h1>{{ title }}</h1>
+      <p>{{ description }}</p>
+      <p>Performance Testing - Server-Side Rendered with Askama</p>
+    </div>
   </body>
 </html>
